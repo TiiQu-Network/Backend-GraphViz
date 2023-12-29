@@ -21,10 +21,14 @@ import org.gephi.project.api.Workspace;
 import org.openide.util.Lookup;
 import org.springframework.stereotype.Service;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
+import java.util.Properties;
 
 /**
  * author : ALEXLIU
@@ -60,15 +64,31 @@ public class GraphService {
 //        AttributeModel attributeModel = Lookup.getDefault().lookup(AttributeController.class).getModel();
 
         //Import database
+        Properties prop = new Properties();
+        String fileName = "src\\main\\java\\com\\tiiqu\\graphviz\\config\\app.config";
+        try (FileInputStream fis = new FileInputStream(fileName)) {
+            prop.load(fis);
+        } catch (FileNotFoundException ex) {
+     // FileNotFoundException catch is optional and can be collapsed
+            System.out.println("file not found");
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        String dbname = prop.getProperty("db.Name");
+        int dbport = Integer.valueOf(prop.getProperty("db.Port"));
+        String dbhost = prop.getProperty("db.Host");
+        String username = prop.getProperty("db.Username");
+        String password = prop.getProperty("db.Passwd");
         EdgeListDatabaseImpl db = new EdgeListDatabaseImpl();
-        db.setDBName("graphviz");
-        db.setHost("localhost");
-        db.setUsername("postgres");
-        db.setPasswd("123456");
+        db.setDBName(dbname);
+        db.setHost(dbhost);
+        db.setUsername(username);
+        db.setPasswd(password);
         //db.setSQLDriver(new MySQLDriver());
         db.setSQLDriver(new PostgreSQLDriver());
         //db.setSQLDriver(new SQLServerDriver());
-        db.setPort(5432);
+        db.setPort(dbport);
         db.setNodeQuery("SELECT nodes.id AS id, nodes.label AS label, nodes.url FROM nodes");
         db.setEdgeQuery("SELECT edges.source AS source, edges.target AS target, edges.name AS label, edges.weight AS weight FROM edges");
         ImporterEdgeList edgeListImporter = new ImporterEdgeList();
@@ -80,7 +100,7 @@ public class GraphService {
 
         //Append imported data to GraphAPI
         importController.process(container, new DefaultProcessor(), workspace);
-        log.info(("go through here*************************************"));
+
         //See if graph is well imported
         UndirectedGraph graph = graphModel.getUndirectedGraph();
         System.out.println("Nodes: " + graph.getNodeCount());

@@ -1,6 +1,7 @@
 HELP.md
 target/
 libs/
+src/main/java/com/tiiqu/graphviz/config/app.config
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
